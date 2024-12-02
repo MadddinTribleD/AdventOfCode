@@ -40,42 +40,67 @@ func main() {
 		values = append(values, lineValues)
 	}
 
-	var safe int64 = 0
+	var safeCnt int64 = 0
 
 	for _, lineValues := range values {
-		diffs := []int64{}
+		diffs := getDiffs(lineValues)
 
-		for i := 1; i < len(lineValues); i++ {
-			diffs = append(diffs, lineValues[i]-lineValues[i-1])
-		}
+		safe := isSafe(diffs)
 
-		isSafe := true
-		increasing := false
+		if safe {
+			safeCnt++
+		} else {
 
-		if diffs[0] > 0 {
-			increasing = true
-		}
+			anySafe := false
+			for i := 0; i < len(lineValues); i++ {
+				tryAgain := append([]int64{}, lineValues[:i]...)
+				tryAgain = append(tryAgain, lineValues[i+1:]...)
+				diffs = getDiffs(tryAgain)
 
-		for i := 0; i < len(diffs); i++ {
-			if diffs[i] == 0 {
-				isSafe = false
-				break
+				if safe = isSafe(diffs); safe {
+					anySafe = true
+					break
+				}
 			}
-
-			if increasing && (diffs[i] > maxIncrease || diffs[i] <= 0) {
-				isSafe = false
-				break
-			} else if !increasing && (diffs[i] < -maxIncrease || diffs[i] >= 0) {
-				isSafe = false
-				break
+			if anySafe {
+				safeCnt++
 			}
-
 		}
 
-		if isSafe {
-			safe++
-		}
 	}
 
-	fmt.Printf("Safe Reports: %d\n", safe)
+	fmt.Printf("Safe Reports: %d\n", safeCnt)
+}
+
+func getDiffs(values []int64) []int64 {
+	diffs := []int64{}
+
+	for i := 1; i < len(values); i++ {
+		diffs = append(diffs, values[i]-values[i-1])
+	}
+
+	return diffs
+}
+
+func isSafe(diffs []int64) bool {
+	increasing := false
+
+	if diffs[0] > 0 {
+		increasing = true
+	}
+
+	for i := 0; i < len(diffs); i++ {
+		if diffs[i] == 0 {
+			return false
+		}
+
+		if increasing && (diffs[i] > maxIncrease || diffs[i] <= 0) {
+			return false
+		} else if !increasing && (diffs[i] < -maxIncrease || diffs[i] >= 0) {
+			return false
+		}
+
+	}
+
+	return true
 }
