@@ -17,7 +17,7 @@ func main() {
 	lines := strings.Split(string(data), "\n")
 
 	firstList := []int64{}
-	secondList := []int64{}
+	secondList := map[int64]int64{}
 
 	for l, line := range lines {
 		parts := strings.Split(line, "   ")
@@ -37,28 +37,16 @@ func main() {
 		}
 
 		firstList = append(firstList, first)
-		secondList = append(secondList, second)
+
+		secondList[second] = secondList[second] + 1
 	}
 
 	slices.Sort(firstList)
-	slices.Sort(secondList)
-
-	diffList := []int64{}
-
-	for i := range firstList {
-		diff := firstList[i] - secondList[i]
-
-		if diff < 0 {
-			diffList = append(diffList, -diff)
-		} else {
-			diffList = append(diffList, diff)
-		}
-	}
 
 	var sum int64
 
-	for _, i := range diffList {
-		sum += i
+	for _, i := range firstList {
+		sum += i * secondList[i]
 	}
 
 	fmt.Printf("Total distance is: %d\n", sum)
