@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "2024/day01"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"github.copilot.editor.enableCodeActions": false
+	}
+}
