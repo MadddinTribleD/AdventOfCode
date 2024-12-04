@@ -11,8 +11,6 @@ type direction struct {
 	y int
 }
 
-var searchWord = "XMAS"
-
 func main() {
 	data, err := os.ReadFile("input")
 	if err != nil {
@@ -25,50 +23,63 @@ func main() {
 		lines = lines[:len(lines)-1]
 	}
 
-	directions := []direction{
-		{x: -1, y: -1},
-		{x: 0, y: -1},
-		{x: 1, y: -1},
-
-		{x: -1, y: 0},
-		{x: 1, y: 0},
-
-		{x: -1, y: 1},
-		{x: 0, y: 1},
-		{x: 1, y: 1},
+	searchMap := [][]string{
+		{
+			"M.S",
+			".A.",
+			"M.S",
+		},
+		{
+			"M.M",
+			".A.",
+			"S.S",
+		},
+		{
+			"S.M",
+			".A.",
+			"S.M",
+		},
+		{
+			"S.S",
+			".A.",
+			"M.M",
+		},
 	}
-
 	sum := 0
 
 	for y := 0; y < len(lines); y++ {
 		for x := 0; x < len(lines[y]); x++ {
-			if lines[y][x:x+1] == searchWord[0:1] {
-				for _, d := range directions {
-					found := true
-					for l := 1; l < len(searchWord); l++ {
 
-						if y+d.y*l < 0 || y+d.y*l >= len(lines) {
+			for _, s := range searchMap {
+				found := true
+				for yy := 0; yy < len(s) && found; yy++ {
+					for xx := 0; xx < len(s[yy]) && found; xx++ {
+						if s[yy][xx:xx+1] == "." {
+							continue
+						}
+
+						if y+yy >= len(lines) {
 							found = false
 							break
 						}
-						if x+d.x*l < 0 || x+d.x*l >= len(lines[y+d.y*l]) {
+						if x+xx >= len(lines[y+yy]) {
 							found = false
 							break
 						}
 
-						if lines[y+d.y*l][x+d.x*l:x+d.x*l+1] != searchWord[l:l+1] {
+						if s[yy][xx:xx+1] != lines[y+yy][x+xx:x+xx+1] {
 							found = false
 							break
 						}
 					}
+				}
 
-					if found {
-						sum++
-					}
+				if found {
+					sum++
 				}
 			}
 		}
 	}
 
-	fmt.Printf("Found '%s' times: %d\n", searchWord, sum)
+	fmt.Printf("Found times: %d\n", sum)
 }
