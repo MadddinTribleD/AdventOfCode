@@ -30,14 +30,19 @@ func main() {
 	for _, p := range secondParts {
 		pages := strings.Split(p, ",")
 
+		hadAnyWrongOrder := false
 		wrongOrder := false
 
-		for i, page := range pages {
+		for i := 0; i < len(pages); i++ {
 			for _, r := range required {
-				if r[0] == page {
+				if r[0] == pages[i] {
 					for j := 0; j < i; j++ {
 						if r[1] == pages[j] {
 							if i > j {
+								hadAnyWrongOrder = true
+								pageI := pages[i]
+								pages[i] = pages[j]
+								pages[j] = pageI
 								wrongOrder = true
 								break
 							}
@@ -49,11 +54,12 @@ func main() {
 				}
 			}
 			if wrongOrder {
-				break
+				wrongOrder = false
+				i = -1
 			}
 		}
 
-		if !wrongOrder {
+		if hadAnyWrongOrder {
 			middlePage, err := strconv.ParseInt(pages[len(pages)/2], 10, 64)
 			if err != nil {
 				panic(fmt.Errorf("could not parse middel page: %w", err))
