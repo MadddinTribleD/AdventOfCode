@@ -72,16 +72,21 @@ func main() {
 				start := c[s]
 				end := c[e]
 
+				grid[start.y][start.x] = antinode
+				grid[end.y][end.x] = antinode
+
 				diff := start.Diff(end)
 
 				top := start.Sub(diff)
 				bottom := end.Add(diff)
 
-				if CheckBounds(grid, top) {
+				for CheckBounds(grid, top) {
 					grid[top.y][top.x] = antinode
+					top = top.Sub(diff)
 				}
-				if CheckBounds(grid, bottom) {
+				for CheckBounds(grid, bottom) {
 					grid[bottom.y][bottom.x] = antinode
+					bottom = bottom.Add(diff)
 				}
 			}
 		}
