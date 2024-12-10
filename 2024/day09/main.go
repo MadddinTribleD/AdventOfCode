@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 )
 
 type File struct {
-	fileId int
-	start  int
-	length int
-	end    int
-	isPart bool
+	fileId  int
+	start   int
+	length  int
+	end     int
+	checked bool
 }
 
 func main() {
@@ -40,67 +41,61 @@ func main() {
 		addFile = !addFile
 	}
 
-	newFs := []File{
-		files[0],
-	}
+	// print(files)
 
-	fileIndex := 1
 	for i := len(files) - 1; i >= 0; i-- {
 		file := files[i]
 
-		if fileIndex == i {
-			if file.length > 0 {
-				newFs = append(newFs, File{
-					start:  newFs[len(newFs)-1].end,
-					end:    newFs[len(newFs)-1].end + file.length,
-					length: file.length,
-					fileId: file.fileId,
-				})
-			}
-			break
+		if file.checked {
+			continue
 		}
 
-		space := files[fileIndex].start - newFs[len(newFs)-1].end
+		files[i].checked = true
+		file.checked = true
 
-		if space <= file.length {
-			newFs = append(newFs, File{
-				start:  newFs[len(newFs)-1].end,
-				end:    newFs[len(newFs)-1].end + space,
-				length: space,
-				fileId: file.fileId,
-			})
+		for j := 1; j < i; j++ {
+			space := files[j].start - files[j-1].end
 
-			files[i].length -= space
+			if file.length <= space {
+				files = slices.Delete(files, i, i+1)
+				file.start = files[j-1].end
+				file.end = file.start + file.length
 
-			if files[i].length > 0 {
-				i++
+				files = slices.Insert(files, j, file)
+
+				i = len(files)
+
+				// print(files)
+
+				break
 			}
-
-			newFs = append(newFs, files[fileIndex])
-			fileIndex++
-
-		} else {
-			newFs = append(newFs, File{
-				start:  newFs[len(newFs)-1].end,
-				end:    newFs[len(newFs)-1].end + file.length,
-				length: file.length,
-				fileId: file.fileId,
-			})
 		}
 	}
 
-	// for _, fs := range newFs {
-	// 	for i := 0; i < fs.length; i++ {
-	// 		fmt.Print(string([]byte{byte(fs.fileId + '0')}))
-	// 	}
-	// }
+	print(files)
 
 	var sum int = 0
-	for _, fs := range newFs {
+	for _, fs := range files {
 		for i := fs.start; i < fs.end; i++ {
 			sum += i * fs.fileId
 		}
 	}
 
 	fmt.Printf("Checksum is: %d", sum)
+}
+
+func print(files []File) {
+	for i := 0; i < len(files); i++ {
+		for l := 0; l < files[i].length; l++ {
+			fmt.Print(string([]byte{byte(files[i].fileId + '0')}))
+		}
+
+		if i < len(files)-1 {
+			for l := files[i].end; l < files[i+1].start; l++ {
+				fmt.Print(".")
+			}
+		}
+	}
+
+	fmt.Println()
 }
