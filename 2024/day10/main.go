@@ -31,7 +31,7 @@ func main() {
 
 	var sum int = 0
 	for _, c0 := range start {
-		trailEnds := map[Coord]bool{}
+
 		for _, c1 := range getNeighbors(grid, c0, '1') {
 			for _, c2 := range getNeighbors(grid, c1, '2') {
 				for _, c3 := range getNeighbors(grid, c2, '3') {
@@ -40,8 +40,8 @@ func main() {
 							for _, c6 := range getNeighbors(grid, c5, '6') {
 								for _, c7 := range getNeighbors(grid, c6, '7') {
 									for _, c8 := range getNeighbors(grid, c7, '8') {
-										for _, c9 := range getNeighbors(grid, c8, '9') {
-											trailEnds[c9] = true
+										for range getNeighbors(grid, c8, '9') {
+											sum++
 										}
 									}
 								}
@@ -51,8 +51,6 @@ func main() {
 				}
 			}
 		}
-
-		sum += len(trailEnds)
 	}
 
 	fmt.Printf("Trail-Score is: %d", sum)
