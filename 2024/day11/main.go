@@ -2,15 +2,11 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
 )
-
-type Coord struct {
-	x int
-	y int
-}
 
 func main() {
 	data, err := os.ReadFile("input")
@@ -18,66 +14,62 @@ func main() {
 		panic(fmt.Errorf("could not read input: %w", err))
 	}
 
-	stoneStrings := strings.Split(string(data), " ")
-	stones := []int64{}
+	// key is stone number, value is count
+	knownStones := map[int64]int64{}
 
-	for _, str := range stoneStrings {
+	for _, str := range strings.Split(string(data), " ") {
 		n, err := strconv.ParseInt(str, 10, 64)
 		if err != nil {
 			panic(fmt.Errorf("failed to parse '%s': %w", str, err))
 		}
 
-		stones = append(stones, n)
+		knownStones[n]++
 	}
 
-	for i := 0; i < 25; i++ {
-		stones = blink(stones)
-	}
+	for i := 0; i < 75; i++ {
+		newStones := map[int64]int64{}
 
-	fmt.Printf("Number of stones: %d", len(stones))
-}
+		for stone, cnt := range knownStones {
+			firstNewStone, secondNewStone := blinkStone(stone)
 
-func blink(stones []int64) []int64 {
-	newStones := []int64{}
+			newStones[firstNewStone] += cnt
 
-	for _, stone := range stones {
-		if stone == 0 {
-			newStones = append(newStones, 1)
-			continue
+			if secondNewStone != nil {
+				newStones[*secondNewStone] += cnt
+			}
 		}
 
-		digits, s := countDigits(stone)
-		if digits%2 == 0 {
-			part1, part2 := splitString(s)
-			newStones = append(newStones, part1, part2)
-			continue
-		}
-
-		newStones = append(newStones, stone*2024)
+		knownStones = newStones
 	}
 
-	return newStones
+	var sum int64 = 0
+
+	for _, cnt := range knownStones {
+		sum += cnt
+	}
+
+	fmt.Printf("Number of stones: %d", sum)
 }
 
-func countDigits(n int64) (int, string) {
-	s := strconv.FormatInt(n, 10)
+func blinkStone(stone int64) (int64, *int64) {
 
-	return len(s), s
+	if stone == 0 {
+		return 1, nil
+	}
+
+	digits := digits(stone)
+	if digits%2 == 0 {
+		pow := int64(math.Pow10(int(digits) / 2))
+
+		first := stone / pow
+		second := stone % pow
+
+		return first, &second
+	}
+
+	return stone * 2024, nil
 }
 
-func splitString(s string) (int64, int64) {
-	mid := len(s) / 2
-	part1String := s[:mid]
-	part2String := s[mid:]
-
-	part1, err := strconv.ParseInt(part1String, 10, 64)
-	if err != nil {
-		panic(fmt.Errorf("failed to parse '%s': %w", part1String, err))
-	}
-	part2, err := strconv.ParseInt(part2String, 10, 64)
-	if err != nil {
-		panic(fmt.Errorf("failed to parse '%s': %w", part2String, err))
-	}
-
-	return part1, part2
+func digits(i int64) int {
+	return int(math.Log10(float64(i))) + 1
 }
