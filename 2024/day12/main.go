@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"slices"
 )
 
 type Coord struct {
@@ -18,7 +17,6 @@ func main() {
 		panic(fmt.Errorf("could not read input: %w", err))
 	}
 
-	originalGrid := bytes.Split(slices.Clone(data), []byte{'\n'})
 	grid := bytes.Split(data, []byte{'\n'})
 
 	plots := [][]Coord{}
@@ -37,11 +35,40 @@ func main() {
 	sum := 0
 
 	for _, plot := range plots {
-		fence := getFence(originalGrid, plot)
+		fence := getSides(plot)
 		sum += fence * len(plot)
 	}
 
 	fmt.Printf("Total fence price: %d", sum)
+}
+
+func getSides(plot []Coord) int {
+	horizontalSides := map[int]int{}
+	verticalSides := map[int]int{}
+
+	for _, c := range plot {
+		horizontalSides[c.y]++
+		horizontalSides[c.y+1]--
+
+		verticalSides[c.x]++
+		verticalSides[c.x+1]--
+	}
+
+	sides := 0
+
+	for _, s := range horizontalSides {
+		if s != 0 {
+			sides++
+		}
+	}
+
+	for _, s := range verticalSides {
+		if s != 0 {
+			sides++
+		}
+	}
+
+	return sides
 }
 
 func getFence(grid [][]byte, plot []Coord) int {
