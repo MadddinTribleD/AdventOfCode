@@ -15,7 +15,7 @@ func main() {
 
 	lines := strings.Split(string(data), "\n")
 
-	countZeroes := 0
+	var countZeroes int64 = 0
 
 	const start int64 = 50
 	const max int64 = 100
@@ -25,7 +25,7 @@ func main() {
 	for _, line := range lines {
 		d := line[0]
 		line = line[1:]
-		i, err := strconv.ParseInt(line, 10, 64)
+		c, err := strconv.ParseInt(line, 10, 64)
 
 		if err != nil {
 			panic(fmt.Errorf("could not parse: %w", err))
@@ -36,12 +36,15 @@ func main() {
 			direction = -1
 		}
 
-		current += direction * i
+		for range c {
+			current += direction
 
-		if current%max == 0 {
-			countZeroes++
+			if current%max == 0 {
+				countZeroes++
+			}
 		}
+
 	}
 
-	fmt.Printf("Password is: %d", countZeroes)
+	fmt.Printf("Password is: %d\n", countZeroes)
 }
