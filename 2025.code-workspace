@@ -1,0 +1,48 @@
+{
+	"folders": [
+		{
+			"path": "2025/day01"
+		},
+		// {
+		// 	"path": "2025/day02"
+		// },
+		// {
+		// 	"path": "2025/day03"
+		// },
+		// {
+		// 	"path": "2025/day04"
+		// },
+		// {
+		// 	"path": "2025/day05"
+		// },
+		// {
+		// 	"path": "2025/day06"
+		// },
+		// {
+		// 	"path": "2025/day07"
+		// },
+		// {
+		// 	"path": "2025/day08"
+		// },
+		// {
+		// 	"path": "2025/day09"
+		// },
+		// {
+		// 	"path": "2025/day10"
+		// },
+		// {
+		// 	"path": "2025/day11"
+		// },
+		// {
+		// 	"path": "2025/day12"
+		// },
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"github.copilot.editor.enableCodeActions": false,
+		"github.copilot.inlineSuggest.enable": false,
+		"editor.inlineSuggest.enabled": false,
+	}
+}
