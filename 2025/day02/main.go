@@ -45,16 +45,38 @@ func main() {
 }
 
 func isValid(i int64) bool {
-	digits := int64(math.Floor(math.Log10(float64(i)) + 1))
+	digits := int(math.Floor(math.Log10(float64(i)) + 1))
 
-	if digits%2 == 1 {
+	if digits == 1 {
 		return true
 	}
 
-	half := int64(math.Pow(10, float64(digits)/2))
+	txt := fmt.Sprintf("%d", i)
 
-	first := i % int64(half)
-	second := i / int64(half)
+	start := digits / 2
 
-	return first != second
+	for t := start; t > 0; t-- {
+		if digits%t > 0 {
+			continue
+		}
+
+		foundMismatch := false
+
+		tests := digits / t
+
+		base := txt[0:t]
+		for b := 1; b < tests; b++ {
+			check := txt[b*t : (b+1)*t]
+			if base != check {
+				foundMismatch = true
+				break
+			}
+		}
+
+		if !foundMismatch {
+			return false
+		}
+	}
+
+	return true
 }

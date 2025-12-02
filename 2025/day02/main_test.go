@@ -10,6 +10,9 @@ func TestIsValid(t *testing.T) {
 		55,
 		6464,
 		123123,
+		121212,
+		1111111,
+		11111111111,
 	}
 
 	for _, i := range invalid {
