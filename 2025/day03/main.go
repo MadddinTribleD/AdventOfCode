@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
-	"strings"
+	"slices"
+	"strconv"
 )
 
 func main() {
@@ -12,54 +14,52 @@ func main() {
 		panic(fmt.Errorf("could not read input: %w", err))
 	}
 
-	total := 0
+	var total int64 = 0
 
-	lines := strings.Split(string(data), "\n")
+	lines := bytes.Split(data, []byte("\n"))
 	for _, line := range lines {
-		total += getJoltage(line)
+		joltage := getJoltage(line)
+		// fmt.Printf("%d\n", joltage)
+		total += joltage
 	}
 
 	fmt.Printf("Total Joltage is: %d\n", total)
 }
 
-func getJoltage(line string) int {
-	const offset rune = '0'
+func getJoltage(line []byte) int64 {
+	const offset byte = '0'
+	const expectedBatteries = 12
 
-	firstLargest := 0
-	secondLargest := 0
+	startIndex := 1
+	for len(line) > expectedBatteries {
+		for i := startIndex; i < len(line); i++ {
+			previousValue := int(line[i-1] - offset)
+			value := int(line[i] - offset)
 
-	firstLargestIndex := -1
+			if previousValue < value || previousValue == value && i == len(line)-1 {
+				line = removeAt(line, i-1)
 
-	for index, c := range line {
-		value := int(c - offset)
+				startIndex = 0
+				break
+			} else if previousValue > value && i == len(line)-1 {
+				line = removeAt(line, i)
 
-		if value > firstLargest {
-			firstLargest = value
-			firstLargestIndex = index
+				startIndex = 0
+			}
 		}
+		startIndex++
 	}
 
-	var isFirstBeforeSecond bool
-	var searchForSecondNumber string
-	if firstLargestIndex+1 < len(line) {
-		searchForSecondNumber = line[firstLargestIndex+1:]
-		isFirstBeforeSecond = true
-	} else {
-		searchForSecondNumber = line[:firstLargestIndex]
-		isFirstBeforeSecond = false
+	joltage, err := strconv.ParseInt(string(line), 10, 64)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse: %w", err))
 	}
 
-	for _, c := range searchForSecondNumber {
-		value := int(c - offset)
+	return joltage
+}
 
-		if value > secondLargest {
-			secondLargest = value
-		}
-	}
-
-	if isFirstBeforeSecond {
-		return firstLargest*10 + secondLargest
-	}
-
-	return firstLargest + secondLargest*10
+func removeAt(line []byte, i int) []byte {
+	removed := slices.Clone(line)
+	removed = append(removed[:i], removed[i+1:]...)
+	return removed
 }
