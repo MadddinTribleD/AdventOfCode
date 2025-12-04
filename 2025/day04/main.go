@@ -14,25 +14,33 @@ func main() {
 		panic(fmt.Errorf("could not read input: %w", err))
 	}
 
-	var total int64 = 0
-
 	places := bytes.Split(data, []byte("\n"))
 
-	total = 0
 	const freePlacesThreshold = 4
 
-	for y := 0; y < len(places); y++ {
-		for x := 0; x < len(places[y]); x++ {
-			if places[y][x] != occupied {
-				continue
+	removedRoles := [][]int{}
+	foundNewRoles := true
+
+	for foundNewRoles {
+		foundNewRoles = false
+		for y := 0; y < len(places); y++ {
+			for x := 0; x < len(places[y]); x++ {
+				if places[y][x] != occupied {
+					continue
+				}
+				if findNeighborCount(places, y, x) < freePlacesThreshold {
+					removedRoles = append(removedRoles, []int{y, x})
+					foundNewRoles = true
+				}
 			}
-			if findNeighborCount(places, y, x) < freePlacesThreshold {
-				total++
-			}
+		}
+
+		for _, place := range removedRoles {
+			places[place[0]][place[1]] = 'x'
 		}
 	}
 
-	fmt.Printf("Total accessible roles  is: %d\n", total)
+	fmt.Printf("Total removed roles  is: %d\n", len(removedRoles))
 }
 
 func findNeighborCount(places [][]byte, y, x int) int {
