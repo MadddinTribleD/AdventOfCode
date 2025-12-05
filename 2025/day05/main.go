@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -15,34 +16,52 @@ func main() {
 
 	parts := strings.Split(string(data), "\n\n")
 	freshRangesString := strings.Split(parts[0], "\n")
-	ingredients := strings.Split(parts[1], "\n")
 
 	freshRanges := parseFreshRanges(freshRangesString)
 
-	totalFresh := 0
+	slices.SortFunc(freshRanges, func(first, second []int64) int {
+		return int(first[0] - second[0])
+	})
 
-	for _, ingredientString := range ingredients {
-		ingredient, err := strconv.ParseInt(ingredientString, 10, 64)
-		if err != nil {
-			panic(err)
-		}
+	freshRanges = reduceOverlaps(freshRanges)
 
-		if isFresh(freshRanges, ingredient) {
-			totalFresh++
-		}
+	var totalFreshIds int64 = 0
+
+	for _, freshRange := range freshRanges {
+		totalFreshIds += freshRange[1] - freshRange[0] + 1
 	}
 
-	fmt.Printf("Total fresh ingredients are: %d\n", totalFresh)
+	fmt.Printf("Total fresh ingredients Ids are: %d\n", totalFreshIds)
 }
 
-func isFresh(freshRanges [][]int64, ingredient int64) bool {
-	for _, freshRange := range freshRanges {
-		if freshRange[0] <= ingredient && ingredient <= freshRange[1] {
-			return true
-		}
+func reduceOverlaps(ranges [][]int64) [][]int64 {
+	// How?
+	if len(ranges) < 1 {
+		return nil
 	}
 
-	return false
+	mergedRanges := [][]int64{}
+
+	for currentIndex := 0; currentIndex < len(ranges); currentIndex++ {
+		current := ranges[currentIndex]
+
+		for nextIndex := currentIndex + 1; nextIndex < len(ranges); nextIndex++ {
+			// next start is in out current range
+			if current[1] >= ranges[nextIndex][0] {
+				// move our end
+				current[1] = max(current[1], ranges[nextIndex][1])
+				currentIndex = nextIndex
+			} else {
+				// skip all until nextIndex
+				currentIndex = nextIndex - 1
+				break
+			}
+		}
+
+		mergedRanges = append(mergedRanges, current)
+	}
+
+	return mergedRanges
 }
 
 func parseFreshRanges(ranges []string) [][]int64 {
