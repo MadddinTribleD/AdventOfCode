@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"regexp"
 	"strconv"
 )
 
@@ -15,10 +14,6 @@ const (
 	Add      Operator = '+'
 )
 
-var (
-	whiteSpaceRegEx = regexp.MustCompile(`\s+`)
-)
-
 func main() {
 	data, err := os.ReadFile("input")
 	if err != nil {
@@ -26,53 +21,67 @@ func main() {
 	}
 	lines := bytes.Split(data, []byte("\n"))
 
-	allValues := make([][]int64, len(lines)-1)
-	var operators []Operator
-
-	for lineIndex := range lines {
-		line := bytes.TrimSpace(lines[lineIndex])
-		line = whiteSpaceRegEx.ReplaceAll(line, []byte(","))
-		parts := bytes.Split(line, []byte(","))
-
-		if lineIndex == len(lines)-1 {
-			operators = make([]Operator, len(parts))
-			for i, p := range parts {
-				operators[i] = Operator(p[0])
-			}
-		} else {
-			values := make([]int64, len(parts))
-
-			for i, p := range parts {
-				number, err := strconv.ParseInt(string(p), 10, 64)
-				if err != nil {
-					panic(err)
-				}
-
-				values[i] = number
-			}
-
-			allValues[lineIndex] = values
-		}
-	}
+	lines = flip(lines)
 
 	var grandTotal int64 = 0
 
-	for i, operator := range operators {
-		value := allValues[0][i]
+	var operator Operator
+	reset := true
+	var currentCalculation int64 = 0
 
-		for lineIndex := 1; lineIndex < len(allValues); lineIndex++ {
-			switch operator {
-			case Multiply:
-				value *= allValues[lineIndex][i]
-			case Add:
-				value += allValues[lineIndex][i]
-			default:
-				panic("Unknown Operator")
+	for _, line := range lines {
+		if reset {
+			operator = Operator(line[len(line)-1])
+			line = line[:len(line)-1]
+			if operator == Add {
+				currentCalculation = 0
+			} else {
+				currentCalculation = 1
 			}
+			reset = false
 		}
 
-		grandTotal += value
+		line = bytes.TrimSpace(line)
+
+		if len(line) == 0 {
+			grandTotal += currentCalculation
+			reset = true
+			continue
+		}
+
+		number, err := strconv.ParseInt(string(line), 10, 64)
+		if err != nil {
+			panic(err)
+		}
+
+		switch operator {
+		case Multiply:
+			currentCalculation *= number
+		case Add:
+			currentCalculation += number
+		default:
+			panic("Unknown Operation")
+		}
 	}
 
+	// last row is not terminated with empty line
+	grandTotal += currentCalculation
+
 	fmt.Printf("Grand total is: %d\n", grandTotal)
+}
+
+func flip(data [][]byte) [][]byte {
+	result := make([][]byte, len(data[0]))
+
+	for column := 0; column < len(data[0]); column++ {
+		result[column] = make([]byte, len(data))
+	}
+
+	for row := 0; row < len(data); row++ {
+		for column := 0; column < len(data[row]); column++ {
+			result[column][row] = data[row][column]
+		}
+	}
+
+	return result
 }
