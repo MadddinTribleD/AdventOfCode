@@ -50,7 +50,9 @@ func main() {
 	gridLookup := map[*JunctionBox]*Grid{}
 	allGrids := []*Grid{}
 
-	for i := 0; i < 1000; i++ {
+	var lastConnection *Connection = nil
+
+	for i := 0; i < len(allConnections); i++ {
 
 		if i > 800-2 && i < 801 {
 			fmt.Printf("line:%d\n", i+1)
@@ -69,14 +71,17 @@ func main() {
 		gridB, hasB := gridLookup[connection.B]
 
 		if hasA && !hasB {
+			lastConnection = &connection
 			// A has a grid => Attach to A
 			gridA.Connections = append(gridA.Connections, connection)
 			gridLookup[connection.B] = gridA
 		} else if !hasA && hasB {
+			lastConnection = &connection
 			// B has a grid => Attach to B
 			gridB.Connections = append(gridB.Connections, connection)
 			gridLookup[connection.A] = gridB
 		} else if !hasA && !hasB {
+			lastConnection = &connection
 			// Both have no grid => create a new one
 			grid := &Grid{
 				Connections: []Connection{connection},
@@ -85,7 +90,9 @@ func main() {
 			gridLookup[connection.A] = grid
 			gridLookup[connection.B] = grid
 		} else if gridA != gridB {
+			lastConnection = &connection
 			gridA.Connections = append(gridA.Connections, gridB.Connections...)
+			gridA.Connections = append(gridA.Connections, connection)
 
 			for _, c := range gridB.Connections {
 				gridLookup[c.A] = gridA
@@ -95,20 +102,11 @@ func main() {
 		}
 	}
 
-	slices.SortFunc(allGrids, func(a, b *Grid) int {
-		return b.Size() - a.Size()
-	})
-
-	sizes := make([]int, len(allGrids))
-	for i := 0; i < len(allGrids); i++ {
-		sizes[i] = allGrids[i].Size()
-	}
-
-	totalSize := sizes[0] * sizes[1] * sizes[2]
+	result := lastConnection.A.X * lastConnection.B.X
 
 	fmt.Printf("Count of connections: %d\n", len(allConnections))
 	fmt.Printf("Count of grids: %d\n", len(allGrids))
-	fmt.Printf("Total size: %d\n", totalSize)
+	fmt.Printf("Result: %d\n", result)
 }
 
 type Grid struct {
