@@ -7,6 +7,8 @@ import (
 	"os"
 	"slices"
 	"strconv"
+
+	"github.com/samber/lo"
 )
 
 func main() {
@@ -41,10 +43,26 @@ func main() {
 		panic("how?")
 	})
 
+	for i := 0; i < 10; i++ {
+		fmt.Printf("%f\n", allConnections[i].Distance)
+	}
+
 	gridLookup := map[*JunctionBox]*Grid{}
 	allGrids := []*Grid{}
 
 	for i := 0; i < 1000; i++ {
+
+		if i > 800-2 && i < 801 {
+			fmt.Printf("line:%d\n", i+1)
+
+			sizes := lo.GroupBy(allGrids, func(g *Grid) int { return g.Size() })
+
+			for size, grid := range sizes {
+				fmt.Printf("Grid: %d, Size: %d\n", len(grid), size)
+			}
+			fmt.Println()
+		}
+
 		connection := allConnections[i]
 
 		gridA, hasA := gridLookup[connection.A]
@@ -78,20 +96,12 @@ func main() {
 	}
 
 	slices.SortFunc(allGrids, func(a, b *Grid) int {
-		return len(b.Connections) - len(a.Connections)
+		return b.Size() - a.Size()
 	})
 
 	sizes := make([]int, len(allGrids))
 	for i := 0; i < len(allGrids); i++ {
-		junctionBoxesInGrid := map[*JunctionBox]bool{}
-
-		for j := 0; j < len(allGrids[i].Connections); j++ {
-			c := allGrids[i].Connections[j]
-			junctionBoxesInGrid[c.A] = true
-			junctionBoxesInGrid[c.B] = true
-		}
-
-		sizes[i] = len(junctionBoxesInGrid)
+		sizes[i] = allGrids[i].Size()
 	}
 
 	totalSize := sizes[0] * sizes[1] * sizes[2]
@@ -103,6 +113,18 @@ func main() {
 
 type Grid struct {
 	Connections []Connection
+}
+
+func (g Grid) Size() int {
+	junctionBoxesInGrid := map[*JunctionBox]bool{}
+
+	for j := 0; j < len(g.Connections); j++ {
+		c := g.Connections[j]
+		junctionBoxesInGrid[c.A] = true
+		junctionBoxesInGrid[c.B] = true
+	}
+
+	return len(junctionBoxesInGrid)
 }
 
 func NewConnection(a, b *JunctionBox) Connection {
