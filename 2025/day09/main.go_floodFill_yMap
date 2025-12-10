@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	Tile        = '#'
-	TileVisited = '_'
-	PrintGrid   = false
+	Tile      = '#'
+	PrintGrid = false
 )
 
 func main() {
@@ -113,7 +112,7 @@ func (g *Grid) print() {
 func (g *Grid) checkRectangle(a, b Point) bool {
 	for x := min(a.X, b.X); x <= max(a.X, b.X); x++ {
 		for y := min(a.Y, b.Y); y <= max(a.Y, b.Y); y++ {
-			if g.data[y][x] != TileVisited {
+			if g.data[y][x] != Tile {
 				return false
 			}
 		}
@@ -123,25 +122,118 @@ func (g *Grid) checkRectangle(a, b Point) bool {
 }
 
 func (g *Grid) floodFill() {
+	fillStarts := map[int64]*map[Point]struct{}{}
+
+	addToFillStarts := func(p Point) {
+		yMap, ok := fillStarts[p.Y/10]
+		if !ok {
+			yMap = &map[Point]struct{}{}
+			fillStarts[p.Y/10] = yMap
+		}
+		(*yMap)[p] = struct{}{}
+	}
+
 	// find starts
 	for y := g.minY; y <= g.maxY; y++ {
 		for x := g.minX; x <= g.maxX; x++ {
 			if g.data[y][x] == Tile {
-				g.data[y][x] = TileVisited
 				// dont even bother
 				if g.data[y][x+1] == Tile {
+					break
+				}
+
+				p := Point{
+					X: x + 1,
+					Y: y,
+				}
+
+				addToFillStarts(p)
+				break
+			}
+		}
+	}
+
+	getNext := func() Point {
+		for y := g.minY; y <= g.maxY; y++ {
+			yMap, ok := fillStarts[y/10]
+			if ok {
+				if len(*yMap) == 0 {
+					delete(fillStarts, y/10)
 					continue
 				}
-				x++
-
-				for g.data[y][x] != Tile && x <= g.maxX {
-					g.print()
-					g.data[y][x] = TileVisited
-					x++
+				for p := range *yMap {
+					return p
 				}
-				x--
-				g.print()
 			}
+		}
+
+		panic("empty")
+	}
+	deletePoint := func(p Point) {
+		yMap, ok := fillStarts[p.Y/10]
+		if ok {
+			delete(*yMap, p)
+		}
+	}
+
+	cnt := 0
+
+	for len(fillStarts) > 0 {
+		p := getNext()
+
+		// delete ourself
+		g.data[p.Y][p.X] = Tile
+		deletePoint(p)
+
+		g.print()
+		for x := p.X + 1; x <= g.maxX; x++ {
+			// found end
+			if g.data[p.Y][x] == Tile {
+				deletePoint(Point{
+					X: x,
+					Y: p.Y,
+				})
+				break
+			}
+
+			g.data[p.Y][x] = Tile
+			// delete ourself
+			deletePoint(Point{
+				X: x,
+				Y: p.Y,
+			})
+
+			// above
+			if g.data[p.Y-1][x] != Tile {
+				addToFillStarts(Point{
+					X: x,
+					Y: p.Y - 1,
+				})
+			}
+			//below
+			if g.data[p.Y+1][x] != Tile {
+				addToFillStarts(Point{
+					X: x,
+					Y: p.Y + 1,
+				})
+			}
+		}
+
+		cnt++
+		if cnt%5000 == 0 || cnt < 50 {
+			// const sizeCnt = 100
+			// sizes := make([]int, sizeCnt)
+
+			// j := 0
+			// for _, yMap := range fillStarts {
+			// 	sizes[j] = len(*yMap)
+			// 	j++
+			// 	if j >= sizeCnt {
+			// 		break
+			// 	}
+			// }
+
+			fmt.Println("Open", cnt, len(fillStarts))
 		}
 	}
 
